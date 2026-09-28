@@ -1,0 +1,87 @@
+name: import-issues
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+jobs:
+  import:
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'review')
+    runs-on: ubuntu-latest
+    permissions: { issues: write }
+    env:
+      GH_TOKEN: ${{ secrets.REVIEW_IMPORT_PAT }}
+      TITLE: ${{ github.event.issue.title }}
+      BODY: ${{ github.event.issue.body }}
+      SRC: ${{ github.event.issue.html_url }}
+      NUM: ${{ github.event.issue.number }}
+      LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+    steps:
+      - name: Copy the finding into Thesis
+        run: |
+          printf '%s\n\n---\nImported from blind review: %s\n' "$BODY" "$SRC" > /tmp/body.md
+          URL=$(gh issue create --repo mejrissi/Thesis \
+                 --title "$TITLE" --body-file /tmp/body.md --label "$LABELS")
+          echo "created $URL"
+          echo "URL=$URL" >> "$GITHUB_ENV"
+      - name: Link back and close the source issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment "$NUM" --repo "$GITHUB_REPOSITORY" --body "Imported into Thesis: $URL"
+          gh issue close "$NUM" --repo "$GITHUB_REPOSITORY"
+
+  import-all:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions: { issues: write }
+    env:
+      THESIS_TOKEN: ${{ secrets.REVIEW_IMPORT_PAT }}
+      REVIEW_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Import every open review issue into Thesis
+        run: |
+          set -uo pipefail
+          GH_TOKEN="$REVIEW_TOKEN" gh issue list --repo "$GITHUB_REPOSITORY" \
+            --state open --label review --limit 1000 \
+            --json number,title,body,url,labels > /tmp/issues.json
+          mapfile -t NUMS < <(jq -r '.[].number' /tmp/issues.json)
+          echo "Found ${#NUMS[@]} open issue(s) labelled review"
+
+          ok=(); failed=()
+          for n in "${NUMS[@]}"; do
+            echo "::group::#$n"
+            q=".[] | select(.number == $n)"
+            title=$(jq -r "$q | .title" /tmp/issues.json)
+            src=$(jq -r "$q | .url" /tmp/issues.json)
+            jq -r "$q | .body // \"\"" /tmp/issues.json > /tmp/src.md
+            printf '%s\n\n---\nImported from blind review: %s\n' "$(cat /tmp/src.md)" "$src" > /tmp/body.md
+            label_args=()
+            while IFS= read -r l; do label_args+=(--label "$l"); done \
+              < <(jq -r "$q | .labels[].name" /tmp/issues.json)
+
+            if ! url=$(GH_TOKEN="$THESIS_TOKEN" gh issue create --repo mejrissi/Thesis \
+                         --title "$title" --body-file /tmp/body.md "${label_args[@]}" 2>/tmp/err); then
+              cat /tmp/err
+              failed+=("#$n: create in Thesis failed: $(tail -n1 /tmp/err)")
+              echo "::endgroup::"; continue
+            fi
+            echo "created $url"
+            if ! GH_TOKEN="$REVIEW_TOKEN" gh issue comment "$n" --repo "$GITHUB_REPOSITORY" \
+                   --body "Imported into Thesis: $url"; then
+              failed+=("#$n: imported as $url, but commenting on the source failed (left open)")
+              echo "::endgroup::"; continue
+            fi
+            if ! GH_TOKEN="$REVIEW_TOKEN" gh issue close "$n" --repo "$GITHUB_REPOSITORY"; then
+              failed+=("#$n: imported as $url and commented, but closing the source failed")
+              echo "::endgroup::"; continue
+            fi
+            ok+=("#$n -> $url")
+            echo "::endgroup::"
+          done
+
+          {
+            echo "## Review import: ${#ok[@]} imported, ${#failed[@]} failed"
+            for s in "${ok[@]}";     do echo "- ✅ $s"; done
+            for s in "${failed[@]}"; do echo "- ❌ $s"; done
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "${#failed[@]}" -eq 0 ]

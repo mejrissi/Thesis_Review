@@ -1,0 +1,30 @@
+name: import-issues
+on:
+  issues:
+    types: [opened]
+jobs:
+  import:
+    if: contains(github.event.issue.labels.*.name, 'review')
+    runs-on: ubuntu-latest
+    permissions: { issues: write }
+    env:
+      GH_TOKEN: ${{ secrets.REVIEW_IMPORT_PAT }}
+      TITLE: ${{ github.event.issue.title }}
+      BODY: ${{ github.event.issue.body }}
+      SRC: ${{ github.event.issue.html_url }}
+      NUM: ${{ github.event.issue.number }}
+      LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+    steps:
+      - name: Copy the finding into Thesis
+        run: |
+          printf '%s\n\n---\nImported from blind review: %s\n' "$BODY" "$SRC" > /tmp/body.md
+          URL=$(gh issue create --repo mejrissi/Thesis \
+                 --title "$TITLE" --body-file /tmp/body.md --label "$LABELS")
+          echo "created $URL"
+          echo "URL=$URL" >> "$GITHUB_ENV"
+      - name: Link back and close the source issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment "$NUM" --repo "$GITHUB_REPOSITORY" --body "Imported into Thesis: $URL"
+          gh issue close "$NUM" --repo "$GITHUB_REPOSITORY"

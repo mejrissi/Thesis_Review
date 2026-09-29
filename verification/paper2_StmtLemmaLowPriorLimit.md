@@ -1,0 +1,169 @@
+# Verification packet: Paper 2, Lemma 4 (`\StmtLemmaLowPriorLimit`)
+
+Source: `papers/paper2/research/statements.tex` at `317caec`, copied verbatim. All mathematics is LaTeX.
+
+## Statement
+
+`\StmtLemmaLowPriorLimit` (Paper 2):
+
+```latex
+\textbf{Lemma 4 (Saving identity and low-prior limit).} Under Assumptions 1--4, in the setting of Definition~5:
+(i) \emph{Saving.} \(D_c(p) = \mathrm{CoA}^\star_c(p) - \mathrm{CoA}^\star_{v,c}(p) = R^\star_Y - R^\star_{Y,v}\), where \(\mathrm{CoA}^\star_{v,c}(p)\) is the verify-first cost of ambiguity of Definition~4 for this cell; it is attained by the policy that verifies iff \(q_p(Y) \in S\), then contains on \(Z = +\) and leaves on \(Z = -\), and otherwise takes the passive action of Lemma~1 at \(q_p(Y)\). Moreover \(0 \le D_c(p) \le \min\{\mathrm{CoA}^\star_c(p),\; V(q^\ast)\,m_c(p)\}\), so \(0 \le \rho_c(p) \le 1\) where defined.
+(ii) \emph{The saving vanishes at low priors.} For every order-flow model \(c\), \(D_c(p) \to 0\) as \(p \to 0\).
+(iii) \emph{The mass vanishes at low priors when \(q_1 > 0\).} If \(S = \emptyset\), then \(m_c \equiv 0\). If \(S = (q_1, q_2) \neq \emptyset\) and \(q_1 > 0\) (equivalently, \(c_v > 0\) or \(t < 1\)), then \(m_c(p) \to 0\) as \(p \to 0\).
+(iv) \emph{The exception.} If \(S \neq \emptyset\), \(c_v = 0\) and \(t = 1\) (so \(q_1 = 0\)), then \(m_c(p) \to P^c_F\bigl(f^c_K(Y) > 0\bigr)\) as \(p \to 0\). This limit is positive if and only if \(P^c_K\) and \(P^c_F\) are not mutually singular, and zero when they are (compromise and fault perfectly separable by order flow); the saving still vanishes, by (ii).
+No condition on the order-flow model is needed beyond Definition~5: the densities are finite, and \(f^c_F > 0\) holds \(P^c_F\)-almost surely by construction.
+```
+
+## Definitions
+
+`\StmtDefPassiveRisk` (Paper 2):
+
+```latex
+\textbf{Definition 1 (Loss table, passive risk).} There are two causes, compromise \(K\) (the orders are submitted through a valid credential or session by someone the holder of that credential or session did not authorize: a stolen credential, a hijacked session) and fault \(F\) (the orders are the holder's own, distorted by a benign malfunction), and two terminal actions, \emph{contain} and \emph{leave}. Containing costs \(C_K\) under \(K\) and \(C_F\) under \(F\); leaving costs \(H_K\) under \(K\) and \(H_F\) under \(F\). For a belief \(q = P(K) \in [0,1]\) the \emph{passive risk} is
+\[
+R(q) \;=\; \min\{\, q\,C_K + (1-q)\,C_F,\;\; q\,H_K + (1-q)\,H_F \,\}.
+\]
+Write \(a = H_K - C_K\) and \(b = C_F - H_F\).
+```
+
+`\StmtDefVerification` (Paper 2):
+
+```latex
+\textbf{Definition 2 (Verification action).} Verification returns an outcome \(Z \in \{+,-\}\) with sensitivity \(s = P(Z = + \mid K)\) and specificity \(t = P(Z = - \mid F)\). It costs \(c_v\) and takes a delay \(\tau\); during the delay a true compromise causes harm at rate \(r_K\). From belief \(q\),
+\[
+P(+) = q s + (1-q)(1-t), \qquad P(-) = q(1-s) + (1-q)t,
+\]
+\[
+q^+ = \frac{q s}{P(+)}, \qquad q^- = \frac{q(1-s)}{P(-)}
+\]
+(a posterior whose outcome has probability zero is never used; see Definition 3).
+```
+
+`\StmtDefVerifyFirst` (Paper 2):
+
+```latex
+\textbf{Definition 3 (Verify-first risk, value of information, verification region).} The \emph{verify-first risk} is
+\[
+R_v(q) \;=\; c_v + q\,r_K\,\tau + P(+)\,R(q^+) + P(-)\,R(q^-),
+\]
+where \(P(z)\,R(q^z)\) is read as \(\min\{\, P(z,K)\,C_K + P(z,F)\,C_F,\; P(z,K)\,H_K + P(z,F)\,H_F \,\}\) with \(P(z,K)=P(z\mid K)\,q\) and \(P(z,F)=P(z\mid F)\,(1-q)\) (equal to the product when \(P(z)>0\), and zero when \(P(z)=0\)). The \emph{value of information} is \(V(q) = R(q) - [P(+)R(q^+) + P(-)R(q^-)]\), the \emph{verification cost} is \(\kappa(q) = c_v + q\,r_K\,\tau\), and the \emph{verification region} is
+\[
+S \;=\; \{\, q \in [0,1] : R_v(q) < R(q) \,\} \;=\; \{\, q \in [0,1] : V(q) > \kappa(q) \,\}.
+\]
+Ties are resolved in favour of the passive action: the operator verifies only when verifying is strictly cheaper.
+```
+
+`\StmtDefVerifyFirstPolicy` (Paper 2):
+
+```latex
+\textbf{Definition 4 (Decision problem with verification; verify-first cost of ambiguity).} The cause \(M\) is \(K\) with prior probability \(p = P(K) \in (0,1)\) and \(F\) otherwise. Given \(M\), the order-flow observation \(Y\) has law \(P^Y_M\), and the verification outcome \(Z\) has the law of Definition~2, jointly as in Assumption~2. Write \(L(\text{contain},K) = C_K\), \(L(\text{contain},F) = C_F\), \(L(\text{leave},K) = H_K\), \(L(\text{leave},F) = H_F\) (Definition~1). A \emph{verify-first policy} is a quadruple of measurable maps \(\delta, \pi_0, \pi_+, \pi_-\) from observations \(y\) to \([0,1]\): with probability \(\delta(y)\) the operator verifies and then contains with probability \(\pi_Z(y)\); otherwise it contains with probability \(\pi_0(y)\). Its expected cost is
+\[
+\begin{aligned}
+J(\delta,\pi) = \mathbb{E}\Big[ &(1-\delta(Y))\big(\pi_0(Y)\,L(\text{contain},M) \\
+&\qquad + (1-\pi_0(Y))\,L(\text{leave},M)\big) \\
+&+ \delta(Y)\big(c_v + \mathbb{1}[M=K]\,r_K\tau + \pi_Z(Y)\,L(\text{contain},M) \\
+&\qquad + (1-\pi_Z(Y))\,L(\text{leave},M)\big)\Big] .
+\end{aligned}
+\]
+A \emph{passive policy} is a verify-first policy with \(\delta \equiv 0\). Let \(R^\star_Y\) and \(R^\star_{Y,v}\) be the infima of \(J\) over passive and over verify-first policies, \(R_{\text{oracle}} = p\min\{C_K,H_K\} + (1-p)\min\{C_F,H_F\}\) the expected cost of an operator who observes \(M\), and
+\[
+\mathrm{CoA}^\star = R^\star_Y - R_{\text{oracle}}, \qquad \mathrm{CoA}^\star_v = R^\star_{Y,v} - R_{\text{oracle}}
+\]
+the passive and the verify-first cost of ambiguity.
+```
+
+`\StmtDefCellQuantities` (Paper 2):
+
+```latex
+\textbf{Definition 5 (Verification mass, saving and recovered share of a cell).} An \emph{order-flow model} \(c\) is a pair of order-flow laws \(P^c_K, P^c_F\) on a measurable space, with densities \(f^c_K, f^c_F\) with respect to a \(\sigma\)-finite measure \(\nu\) dominating both (e.g.\ \(\nu = P^c_K + P^c_F\)). A \emph{cell} \((c, p)\) is an order-flow model \(c\) together with a prior \(p \in (0,1)\); in Paper~1's grid, \(c\) is a market design in one regime and \(p\) is a prior of the grid. In the setting of Definition~4 with \(P^Y_K = P^c_K\), \(P^Y_F = P^c_F\) and prior \(p \in (0,1)\), write \(P_p = p\,P^c_K + (1-p)\,P^c_F\) for the law of \(Y\) and
+\[
+q_p(y) \;=\; \frac{p\,f^c_K(y)}{p\,f^c_K(y) + (1-p)\,f^c_F(y)}
+\]
+for the passive posterior (defined where the denominator is positive, a set of full \(P_p\)-measure). The \emph{verification mass}, the \emph{saving} and the \emph{recovered share} of the cell \((c, p)\) are
+\[
+m_c(p) = P_p\bigl(q_p(Y) \in S\bigr), \qquad
+D_c(p) = \mathbb{E}_p\bigl[(V - \kappa)^+\bigl(q_p(Y)\bigr)\bigr],
+\]
+\[
+\rho_c(p) = \frac{D_c(p)}{\mathrm{CoA}^\star_c(p)} ,
+\]
+with \(S\), \(V\), \(\kappa\) as in Definition~3 and \(\mathrm{CoA}^\star_c(p)\) the passive cost of ambiguity of Definition~4 for this cell; \(\rho_c(p)\) is defined when \(\mathrm{CoA}^\star_c(p) > 0\). Where \(f^c_K, f^c_F > 0\), \(\operatorname{logit} q_p(y) = \operatorname{logit} p + \Lambda_c(y)\) with \(\Lambda_c = \log(f^c_K / f^c_F)\).
+```
+
+## Assumptions
+
+`\StmtAssumptionCosts` (Paper 2):
+
+```latex
+\textbf{Assumption 1 (Cost orderings).} \(H_K > C_K\) and \(C_F > H_F\); that is, \(a > 0\) and \(b > 0\): leaving a compromise is strictly worse than containing it, and containing a fault is strictly worse than leaving it.
+```
+
+`\StmtAssumptionSeparateChannel` (Paper 2):
+
+```latex
+\textbf{Assumption 2 (Separate channel).} Verification reads authorization, not order flow: it asks whether the holder of the credential or session authorized the orders, through a channel the person submitting them does not control (for example an out-of-band confirmation with the account holder, or a step-up authentication with a factor bound to the holder). A check of whether the credential or session is valid is not such a check, since a stolen credential or a hijacked session is valid under \(K\). Its outcome \(Z\) is conditionally independent of the order-flow observation \(Y\) given the cause: \(P(Z, Y \mid c) = P(Z \mid c)\,P(Y \mid c)\) for \(c \in \{K, F\}\), and \((s,t)\) do not depend on \(Y\).
+```
+
+`\StmtAssumptionVerification` (Paper 2):
+
+```latex
+\textbf{Assumption 3 (Informative one-shot verification).} \(s, t \in [0,1]\) with \(s + t > 1\); \(c_v \ge 0\), \(\tau \ge 0\), \(r_K \ge 0\). Verification is available once; after its outcome the operator takes a terminal action (contain or leave) and cannot verify again.
+```
+
+`\StmtAssumptionDelay` (Paper 2):
+
+```latex
+\textbf{Assumption 4 (Delay accounting).} The harm \(r_K\tau\) accrued by a true compromise during the verification delay is \emph{additional} to the terminal cost (\(C_K\) or \(H_K\)) incurred afterwards, whichever terminal action is taken; the terminal costs \(C_K, C_F, H_K, H_F\) and the verification characteristics \(s, t\) do not depend on \(\tau\); a fault accrues no additional cost during the delay (its damage rate is \(r_F = 0\)); and no further order-flow evidence is used between the start of verification and the terminal action.
+```
+
+## Notation
+
+Shared notation, verbatim from the header of Paper 2's statements file:
+
+```latex
+% Notation shared by all statements:
+%   q in [0,1]   belief that the cause is compromise K (the alternative is fault F);
+%   a := H_K - C_K  (net benefit of containing a compromise),
+%   b := C_F - H_F  (net cost of containing a fault).
+%   r_K >= 0     damage rate: harm per unit time caused by a true compromise during the verification delay
+%                (renamed from h_K, decision 0026, issue #134; r_F is the rate of a fault, zero under Assumption 4 and >= 0 in Corollary 4).
+%                H_K, H_F stay the costs of leaving.
+```
+
+```latex
+- \(x^+ = \max\{x, 0\}\); \(\mathbb{1}[\cdot]\) is the indicator; \(\Phi\) is the standard normal distribution function; \(\operatorname{logit} q = \log(q/(1-q))\).
+- \(q^\ast = b/(a+b)\) (Paper 2): defined in Paper 2's Lemma 1 ("let \(q^\ast = b/(a+b)\)").
+- \(q_L\), \(q_U\) (Paper 2): defined in Paper 2's Lemma 3 as \(q_L = \frac{(1-t)\,b}{s\,a + (1-t)\,b}\), \(q_U = \frac{t\,b}{t\,b + (1-s)\,a}\).
+- \(q_1, q_2\) are the endpoints of \(S\) defined in Paper 2's Theorem 1; "the passive action of Lemma 1" refers to Paper 2's Lemma 1. Both are reproduced below.
+- \(R^\star_Y\) and \(R^\star_{Y,v}\) are those of Definition 4 for the cell of Definition 5 and prior \(p\).
+```
+
+### Statements referred to
+
+The statement refers to the statements below. They are reproduced verbatim so that every reference resolves; they are not the statement under verification.
+
+`\StmtTheoremTwoThreshold` (Paper 2):
+
+```latex
+\textbf{Theorem 1 (Two-threshold leave / verify / contain rule).} Under Assumptions 1, 3 and 4, the verification region \(S\) is an open interval (possibly empty). It is non-empty if and only if
+\[
+V(q^\ast) \;>\; c_v + q^\ast r_K \tau ,
+\]
+and then \(S = (q_1, q_2)\) with \(q_L \le q_1 < q^\ast < q_2 \le q_U\), where
+\[
+q_1 = \frac{c_v + (1-t)\,b}{s\,a + (1-t)\,b - r_K\tau}, \qquad
+q_2 = \frac{t\,b - c_v}{t\,b + (1-s)\,a + r_K\tau}
+\]
+(both denominators are positive when \(S \neq \emptyset\)). The optimal one-shot policy is: \emph{leave} if \(q \le q_1\), \emph{verify} if \(q_1 < q < q_2\) and then contain on \(Z = +\) and leave on \(Z = -\), \emph{contain} if \(q \ge q_2\) (with \(q_1 = q_2 = q^\ast\) and the passive rule of Lemma 1 when \(S = \emptyset\)). When \(c_v = 0\) and \(\tau r_K = 0\), \(S = (q_L, q_U)\).
+```
+
+`\StmtLemmaPassiveThreshold` (Paper 2):
+
+```latex
+\textbf{Lemma 1 (Passive threshold).} Under Assumption 1, let \(q^\ast = b/(a+b) \in (0,1)\). Leaving is strictly optimal for \(q < q^\ast\), containing is strictly optimal for \(q > q^\ast\), and
+\[
+R(q) \;=\; q\,H_K + (1-q)\,H_F \;-\; (a+b)\,(q - q^\ast)^+ ,
+\]
+so \(R\) is continuous, concave and piecewise linear on \([0,1]\) with a single kink at \(q^\ast\).
+```
